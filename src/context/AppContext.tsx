@@ -4,6 +4,27 @@ interface ContentData {
   [key: string]: string;
 }
 
+export interface UpdateRecord {
+  date: string;
+  name: string;
+  matricula: string;
+}
+
+export interface ActivityData {
+  id: string;
+  descricao: string;
+  ferramentaGestao: string;
+}
+
+export interface ScenarioData {
+  id: string;
+  title: string;
+  activities: ActivityData[];
+  ferramentasApoio: string;
+  referencias: string;
+  lastUpdate?: UpdateRecord;
+}
+
 interface AppContextType {
   editMode: boolean;
   toggleEditMode: () => void;
@@ -11,13 +32,36 @@ interface AppContextType {
   updateContent: (key: string, value: string) => void;
   saveContent: () => Promise<void>;
   isSaving: boolean;
+  scenarios: ScenarioData[];
+  updateScenario: (id: string, data: Partial<ScenarioData>, updaterName: string, updaterMatricula: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const scenarioNames = [
+  'GEAQAPS', 'GSAP', 'GPMA HOSPITALAR', 'FARMÁCIA UBS 1 DE VP', 
+  'DIPLAN', 'GEROE', 'NQSP', 'GSAS', 'GAPAPS', 'DIRASE', 
+  'GENF DIRAPS', 'NHEP', 'ASPLAN', 'DA'
+];
+
+const initialScenarios: ScenarioData[] = scenarioNames.map((name, index) => ({
+  id: `cenario-${index + 1}`,
+  title: name,
+  ferramentasApoio: '',
+  referencias: '',
+  activities: [
+    {
+      id: `act-${Math.random().toString(36).substring(2, 9)}`,
+      descricao: '',
+      ferramentaGestao: ''
+    }
+  ]
+}));
+
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [editMode, setEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [scenarios, setScenarios] = useState<ScenarioData[]>(initialScenarios);
   
   // Initial mock data
   const [contentData, setContentData] = useState<ContentData>({
@@ -29,8 +73,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     'ferr-body': 'Conheça e aplique ferramentas como PDCA, Matriz SWOT e Diagrama de Ishikawa para melhorar os processos de trabalho.',
     'ferr-doc-title': 'Ferramentas Documentais',
     'ferr-doc-body': 'Para um gestor da SES-DF, o repertório de ferramentas documentais é o que dá legalidade e direção técnica ao trabalho. Enquanto as ferramentas de gestão (SWOT, PDCA) são o "como fazer", estes documentos são o "o que deve ser feito" e "com quais recursos".',
-    'plano-title': 'Plano de Ação',
-    'plano-body': 'Elabore planos de ação estruturados (ex: 5W2H) para intervir nos problemas identificados no diagnóstico.'
+    'comp-title': 'Competências PPP',
+    'comp-body': 'Selecione um cenário de prática para visualizar e editar as atividades, ferramentas e referências associadas em formato de tabela.'
   });
 
   const toggleEditMode = () => setEditMode(!editMode);
@@ -39,18 +83,35 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setContentData(prev => ({ ...prev, [key]: value }));
   };
 
+  const updateScenario = (id: string, data: Partial<ScenarioData>, updaterName: string, updaterMatricula: string) => {
+    setScenarios(prev => prev.map(scenario => {
+      if (scenario.id === id) {
+        return {
+          ...scenario,
+          ...data,
+          lastUpdate: {
+            date: new Date().toISOString(),
+            name: updaterName,
+            matricula: updaterMatricula
+          }
+        };
+      }
+      return scenario;
+    }));
+  };
+
   const saveContent = async () => {
     setIsSaving(true);
     // Simulate API call to Google Apps Script / Google Sheets
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Dados salvos com sucesso:', contentData);
+    console.log('Dados salvos com sucesso:', contentData, scenarios);
     setIsSaving(false);
     setEditMode(false);
     alert('Conteúdo salvo com sucesso! (Simulação)');
   };
 
   return (
-    <AppContext.Provider value={{ editMode, toggleEditMode, contentData, updateContent, saveContent, isSaving }}>
+    <AppContext.Provider value={{ editMode, toggleEditMode, contentData, updateContent, saveContent, isSaving, scenarios, updateScenario }}>
       {children}
     </AppContext.Provider>
   );

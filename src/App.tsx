@@ -11,7 +11,7 @@ import { Home } from './pages/Home';
 import { Diagnostico } from './pages/Diagnostico';
 import { Ferramentas } from './pages/Ferramentas';
 import { FerramentasDocumentais } from './pages/FerramentasDocumentais';
-import { PlanoAcao } from './pages/PlanoAcao';
+import { CompetenciasPPP } from './pages/CompetenciasPPP';
 
 export default function App() {
   return (
@@ -23,7 +23,7 @@ export default function App() {
             <Route path="diagnostico" element={<Diagnostico />} />
             <Route path="ferramentas" element={<Ferramentas />} />
             <Route path="ferramentas-documentais" element={<FerramentasDocumentais />} />
-            <Route path="plano" element={<PlanoAcao />} />
+            <Route path="competencias" element={<CompetenciasPPP />} />
           </Route>
         </Routes>
       </Router>

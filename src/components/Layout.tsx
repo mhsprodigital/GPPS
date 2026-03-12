@@ -1,14 +1,14 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { Menu, X, Edit3, Save, Home, Activity, Wrench, FileText, CheckSquare } from 'lucide-react';
+import { Menu, X, Edit3, Save, Home, Activity, Wrench, FileText, Target } from 'lucide-react';
 
 const menuItems = [
   { id: 'home', label: 'Início', path: '/', icon: Home },
   { id: 'diagnostico', label: 'Diagnóstico Situacional', path: '/diagnostico', icon: Activity },
   { id: 'ferramentas', label: 'Ferramentas de Gestão', path: '/ferramentas', icon: Wrench },
   { id: 'ferramentas-documentais', label: 'Ferramentas Documentais', path: '/ferramentas-documentais', icon: FileText },
-  { id: 'plano', label: 'Plano de Ação', path: '/plano', icon: CheckSquare },
+  { id: 'competencias', label: 'Competências PPP', path: '/competencias', icon: Target },
 ];
 
 export const Layout: React.FC = () => {
