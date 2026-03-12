@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 interface ContentData {
   [key: string]: string;
@@ -63,6 +63,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isSaving, setIsSaving] = useState(false);
   const [scenarios, setScenarios] = useState<ScenarioData[]>(initialScenarios);
   
+  const scriptUrl = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL;
+
+  // Load data on mount
+  useEffect(() => {
+    if (scriptUrl) {
+      fetch(scriptUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            // Merge fetched data with initial scenarios to ensure all scenarios exist
+            setScenarios(prev => prev.map(p => {
+              const fetched = data.find((d: any) => d.id === p.id);
+              return fetched ? { ...p, ...fetched } : p;
+            }));
+          }
+        })
+        .catch(err => console.error('Error fetching scenarios from Google Sheets:', err));
+    }
+  }, [scriptUrl]);
+
   // Initial mock data
   const [contentData, setContentData] = useState<ContentData>({
     'home-title': 'Bem-vindo ao Programa de Residência Multiprofissional',
@@ -83,14 +103,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setContentData(prev => ({ ...prev, [key]: value }));
   };
 
-  const updateScenario = (id: string, data: Partial<ScenarioData>, updaterName: string, updaterMatricula: string) => {
+  const updateScenario = async (id: string, data: Partial<ScenarioData>, updaterName: string, updaterMatricula: string) => {
+    const updateDate = new Date().toISOString();
+    
+    // Optimistic update
     setScenarios(prev => prev.map(scenario => {
       if (scenario.id === id) {
         return {
           ...scenario,
           ...data,
           lastUpdate: {
-            date: new Date().toISOString(),
+            date: updateDate,
             name: updaterName,
             matricula: updaterMatricula
           }
@@ -98,6 +121,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       return scenario;
     }));
+
+    if (scriptUrl) {
+      const scenarioToSave = scenarios.find(s => s.id === id);
+      const payload = {
+        ...scenarioToSave,
+        ...data,
+        updaterName,
+        updaterMatricula,
+        updateDate
+      };
+
+      try {
+        await fetch(scriptUrl, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8', // Important for Google Apps Script CORS
+          }
+        });
+      } catch (error) {
+        console.error('Error saving to Google Sheets:', error);
+        alert('Erro ao salvar na planilha. Verifique a conexão.');
+      }
+    }
   };
 
   const saveContent = async () => {
