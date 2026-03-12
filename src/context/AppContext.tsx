@@ -63,7 +63,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isSaving, setIsSaving] = useState(false);
   const [scenarios, setScenarios] = useState<ScenarioData[]>(initialScenarios);
   
-  const scriptUrl = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL;
+  const scriptUrl = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbxB_kwTTgJIhPHPBprQF1gx_cWS2GchsN_482jHgYNTx6_4yYH9fO_P1FmHAIb58W8A/exec";
 
   // Load data on mount
   useEffect(() => {
@@ -135,6 +135,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       try {
         await fetch(scriptUrl, {
           method: 'POST',
+          mode: 'no-cors',
           body: JSON.stringify(payload),
           headers: {
             'Content-Type': 'text/plain;charset=utf-8', // Important for Google Apps Script CORS
